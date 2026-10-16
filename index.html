@@ -46,7 +46,7 @@ body.op #ov{opacity:1;pointer-events:auto}body.op #pn{transform:none}
 .bar div{height:12px;background:#EEF2F5;border-radius:6px;overflow:hidden}.bar i{display:block;height:100%}
 .bar b{text-align:right}
 .ch{margin-top:14px}.ch h4{margin:0 0 2px;font-size:13px;color:var(--sub);font-weight:600}
-#ia{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:0 0 12px}#dc{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#ia{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:12px 0 4px}#dc{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .thl{font-size:14px;white-space:nowrap}.thl input{width:150px}
 .tabs{display:flex;gap:6px;margin:4px 0 6px}.tb{border:1px solid var(--ln);background:#fff;border-radius:99px;padding:3px 16px;font:inherit;font-size:13px;cursor:pointer;color:var(--sub)}.tb.on{background:var(--ac);border-color:var(--ac);color:#fff}
 table.mini{min-width:0;font-size:13px}.mini td+td,.mini th+th{text-align:right}
@@ -59,13 +59,13 @@ table.mini{min-width:0;font-size:13px}.mini td+td,.mini th+th{text-align:right}
 <body>
 <div class="w">
 <header class="mast"><h1>盤後快訊</h1><p>把機器人的預測表，變成 30 秒看完的一頁報告。</p><span class="pill" id="dt">日期未提供</span><span class="pill" id="na">模擬數據</span></header>
-<details class="set"><summary>設定：切換測試情境</summary>
+<details class="set" open><summary>設定：情境與門檻</summary>
 <div class="ctl">
 <label>情境 <select id="sc"><option value="R">真實數據（台灣 50，模型實際輸出）</option><option value="A">情境 A：超過 5 檔</option><option value="B">情境 B：只有 2 檔</option><option value="C">情境 C：0 檔加資料異常</option></select></label>
 
 </div>
-<p class="note">用來測試 W4 的各種例外規則（超過 5 檔、2 檔、0 檔、資料異常）。在模擬情境中，點報告標題的日期可自行選擇日期。</p></details>
 <div id="ia"><div id="dc"></div><label class="thl">門檻 <input type="range" id="th" min="50" max="90" step="1" value="70" aria-label="上漲訊號機率門檻"> <b id="tv">70%</b></label><p class="note" style="flex-basis:100%;margin:0">預設 70% 是個人設定的初步測試門檻，非驗證勝率；低於 70% 時，清單改稱「自訂門檻觀察股」。</p></div>
+<p class="note">情境用來測試 W4 的各種例外規則（超過 5 檔、2 檔、0 檔、資料異常）；在模擬情境中，點報告標題的日期可自行選擇日期。</p></details>
 <main id="rep"></main>
 <p class="note" id="hint"></p>
 <details class="set" style="margin-top:16px"><summary>模型說明</summary>
