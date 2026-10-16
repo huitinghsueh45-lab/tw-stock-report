@@ -46,7 +46,8 @@ body.op #ov{opacity:1;pointer-events:auto}body.op #pn{transform:none}
 .bar div{height:12px;background:#EEF2F5;border-radius:6px;overflow:hidden}.bar i{display:block;height:100%}
 .bar b{text-align:right}
 .ch{margin-top:14px}.ch h4{margin:0 0 2px;font-size:13px;color:var(--sub);font-weight:600}
-#dc{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+#ia{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:0 0 12px}#dc{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.thl{font-size:14px;white-space:nowrap}.thl input{width:150px}
 .tabs{display:flex;gap:6px;margin:4px 0 6px}.tb{border:1px solid var(--ln);background:#fff;border-radius:99px;padding:3px 16px;font:inherit;font-size:13px;cursor:pointer;color:var(--sub)}.tb.on{background:var(--ac);border-color:var(--ac);color:#fff}
 table.mini{min-width:0;font-size:13px}.mini td+td,.mini th+th{text-align:right}
 .dtw{position:relative;display:inline-block;color:var(--ac);border-bottom:2px dashed var(--ac);cursor:pointer}.dti{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
@@ -58,13 +59,13 @@ table.mini{min-width:0;font-size:13px}.mini td+td,.mini th+th{text-align:right}
 <body>
 <div class="w">
 <header class="mast"><h1>盤後快訊</h1><p>把機器人的預測表，變成 30 秒看完的一頁報告。</p><span class="pill" id="dt">日期未提供</span><span class="pill" id="na">模擬數據</span></header>
-<details class="set"><summary>設定：情境與門檻</summary>
+<details class="set"><summary>設定：切換測試情境</summary>
 <div class="ctl">
 <label>情境 <select id="sc"><option value="R">真實數據（台灣 50，模型實際輸出）</option><option value="A">情境 A：超過 5 檔</option><option value="B">情境 B：只有 2 檔</option><option value="C">情境 C：0 檔加資料異常</option></select></label>
-<label>門檻 <input type="range" id="th" min="50" max="90" step="1" value="70"> <b id="tv">70%</b></label>
+
 </div>
-<p class="note">預設 70% 是個人設定的初步測試門檻，不是經過驗證的勝率。低於 70% 時，清單會改稱「自訂門檻觀察股」。在模擬情境中，點報告標題的日期可自行選擇日期。</p></details>
-<div id="dc"></div>
+<p class="note">用來測試 W4 的各種例外規則（超過 5 檔、2 檔、0 檔、資料異常）。在模擬情境中，點報告標題的日期可自行選擇日期。</p></details>
+<div id="ia"><div id="dc"></div><label class="thl">門檻 <input type="range" id="th" min="50" max="90" step="1" value="70" aria-label="上漲訊號機率門檻"> <b id="tv">70%</b></label><p class="note" style="flex-basis:100%;margin:0">預設 70% 是個人設定的初步測試門檻，非驗證勝率；低於 70% 時，清單改稱「自訂門檻觀察股」。</p></div>
 <main id="rep"></main>
 <p class="note" id="hint"></p>
 <details class="set" style="margin-top:16px"><summary>模型說明</summary>
@@ -139,7 +140,7 @@ cur.forEach((x,i)=>{const s=star(x.u);
 h+=`<tr data-i="${i}" tabindex="0"><td>${i+1}</td><td><b>${x.c}</b> ${x.n}</td><td><span class="u">${F(x.u)}</span> / ${F(x.f)} / <span class="d">${F(x.d)}</span></td><td>${x.d===0?'無下跌機率':(x.u/x.d).toFixed(1)}</td><td>${SG(x.u-x.d)} 百分點</td><td class="st">${s?'★'.repeat(s):'－'}</td></tr>`});
 h+=`</tbody></table></div><p class="cv">上漲／下跌比、勝率優勢、星等為換算指標，非機器人輸出</p><p class="tip">點選任一檔，查看個股明細</p><blockquote><small>白話重點</small>${say(cur,th)}</blockquote>`}
 h+=`<p class="end">入選股請自行再查：①法人動向 ②均線位置</p><p class="end">查完有共識的股票，可分享到群組</p><p class="fine">機器人預測僅供參考，非投資建議。</p>`;
-$('#rep').innerHTML=h;$('#hint').textContent=N?'':'目前沒有股票達到門檻。可展開上方「設定」，把門檻調低看看。';chips();closeP()}
+$('#rep').innerHTML=h;$('#hint').textContent=N?'':'目前沒有股票達到門檻。可拖動上方的「門檻」滑桿，調低看看。';chips();closeP()}
 const SV=x=>`<svg viewBox="0 0 300 80" width="100%" style="background:#F7F9FB;border-radius:8px">${x}</svg>`;
 const P=(a,mn,mx,c)=>`<polyline fill="none" stroke="${c}" stroke-width="2" points="${a.map((v,i)=>(6+i*(288/(a.length-1))).toFixed(1)+','+(74-(v-mn)/(mx-mn||1)*68).toFixed(1)).join(' ')}"/>`;
 const PN={w:5,m:20,q:60};let ps=null;
