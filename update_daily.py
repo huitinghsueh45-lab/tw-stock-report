@@ -31,12 +31,14 @@ def daily_table(sid):
     d = p.sort_values("date").set_index("date")[["Trading_Volume", "max", "min", "close"]].astype(float)
     d = d[d["Trading_Volume"] > 0]
     i = fetch("TaiwanStockInstitutionalInvestorsBuySell", sid)
+    d["inst_ok"] = bool(0) if i.empty else d.index.isin(pd.to_datetime(i["date"]).unique())
     for pref, cond in [("f_", lambda s: s.str.startswith("Foreign")), ("t_", lambda s: s == "Investment_Trust")]:
         if i.empty: d[pref+"buy"] = 0.0; d[pref+"sell"] = 0.0; continue
         x = i[cond(i["name"])].copy(); x["date"] = pd.to_datetime(x["date"])
         g = x.groupby("date")[["buy", "sell"]].sum()
         d[pref+"buy"] = g["buy"].reindex(d.index).fillna(0.0); d[pref+"sell"] = g["sell"].reindex(d.index).fillna(0.0)
     m = fetch("TaiwanStockMarginPurchaseShortSale", sid)
+    d["m_ok"] = True if m.empty else d.index.isin(pd.to_datetime(m["date"]).unique())
     if m.empty: d["mchg"] = 0.0
     else:
         m["date"] = pd.to_datetime(m["date"]); m = m.set_index("date")
@@ -55,6 +57,7 @@ def window_x(d, t):
     return np.column_stack([nc] + [w[c].values for c in FEATS[1:]])
 
 J = json.load(open(FILE, encoding="utf-8")); M = J["model"]
+OLD = json.dumps({k: v for k, v in J.items() if k != "updated"}, sort_keys=True)
 mean, std, coef, bias = (np.array(M[k]) for k in ("mean", "std", "coef", "intercept"))
 def probs(x):
     lg = coef @ ((x.reshape(-1) - mean) / std) + bias; e = np.exp(lg - lg.max()); return e / e.sum()
@@ -67,10 +70,16 @@ for s in J["stocks"]:
         else: print("略過（資料不足）", s["id"])
     except Exception as e: print("略過", s["id"], str(e)[:80])
 if not tabs: sys.exit("沒有取得任何資料，不更新。")
+def ok_frac(day):   # 該日有「三大法人＋融資」資料的股票比例
+    v = [bool(d.loc[day, "inst_ok"] and d.loc[day, "m_ok"]) for d in tabs.values() if day in d.index]
+    return sum(v) / max(len(v), 1)
+last = max(d.index[-1] for d in tabs.values())
+while ok_frac(last) < 0.8:   # 最新一天籌碼資料還沒公布齊全：先不用，避免用不完整的資料算預測
+    print("略過資料尚未完整的日期", last.date())
+    tabs = {k: d[d.index < last] for k, d in tabs.items()}
+    last = max(d.index[-1] for d in tabs.values())
 ref = Counter(tuple(d.index[-70:].strftime("%Y-%m-%d")) for d in tabs.values()).most_common(1)[0][0]
 asof = ref[-1]
-if "rdays" in J and asof <= J["asof"]:
-    print(f"沒有新的交易日資料（最新 {asof}），不更新。"); sys.exit(0)
 
 stocks = []
 for s in J["stocks"]:
@@ -88,7 +97,9 @@ for s in J["stocks"]:
         "fo": [round(float(v) * 100, 3) for v in d["fo"].iloc[-(KEEP + 19):]],
         "tr": [round(float(v) * 100, 3) for v in d["tr"].iloc[-(KEEP + 19):]],
         "fl": lots("f_buy", "f_sell"), "tl": lots("t_buy", "t_sell")})
-J.update(asof=asof, dates=list(ref), rdays=list(ref[-KEEP:]), stocks=stocks,
-         updated=dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M（台灣時間）"))
-json.dump(J, open(FILE, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+new = dict(J); new.update(asof=asof, dates=list(ref), rdays=list(ref[-KEEP:]), stocks=stocks)
+if json.dumps({k: v for k, v in new.items() if k != "updated"}, sort_keys=True) == OLD:
+    print(f"內容沒有變化（最新 {asof}），不更新。"); sys.exit(0)
+new["updated"] = dt.datetime.now(dt.timezone(dt.timedelta(hours=8))).strftime("%Y-%m-%d %H:%M（台灣時間）")
+json.dump(new, open(FILE, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
 print("已更新", asof, len(stocks), "檔，保留", KEEP, "個交易日")
