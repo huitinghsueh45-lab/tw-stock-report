@@ -29,7 +29,7 @@ th{font-weight:600;color:var(--sub);font-size:12px;text-align:left;border-bottom
 td{padding:9px 4px;border-bottom:1px solid var(--ln);vertical-align:middle}
 tbody tr{cursor:pointer}tbody tr:hover,tbody tr:focus{background:#F1F7FB;outline:none}
 .u{color:var(--up);font-weight:600}.d{color:var(--dn);font-weight:600}
-.st{color:#E0A100;letter-spacing:1px;white-space:nowrap}
+.st{color:#E0A100;letter-spacing:1px;white-space:nowrap}.st.ns{color:#8A94A0;font-size:12px;letter-spacing:0}
 .cv{font-size:12px;color:var(--sub);margin:8px 0 14px}
 .tip{font-size:12px;color:var(--ac);margin:0 0 12px}
 blockquote{margin:0 0 14px;padding:12px 16px;border-left:4px solid var(--ac);background:#F5F9FC;border-radius:0 12px 12px 0;font:15px/1.9 var(--sf)}
@@ -141,8 +141,8 @@ else{
 if(N>5)h+=`<p class="cnt">本日符合共 ${N} 檔，僅列前 5 檔</p>`;
 h+=`<div class="tw"><table><thead><tr><th>排名</th><th>代號名稱</th><th>上漲／盤整／下跌</th><th>上漲／下跌比</th><th>勝率優勢</th><th>星等</th></tr></thead><tbody>`;
 cur.forEach((x,i)=>{const s=star(x.u);
-h+=`<tr data-i="${i}" tabindex="0"><td>${i+1}</td><td><b>${x.c}</b> ${x.n}</td><td data-label="上漲／盤整／下跌"><span class="u">${F(x.u)}</span> / ${F(x.f)} / <span class="d">${F(x.d)}</span></td><td data-label="上漲／下跌比">${x.d===0?'無下跌機率':(x.u/x.d).toFixed(1)}</td><td data-label="勝率優勢">${SG(x.u-x.d)} 百分點</td><td class="st">${s?'★'.repeat(s):'－'}</td></tr>`});
-h+=`</tbody></table></div><p class="cv">上漲／下跌比、勝率優勢、星等為換算指標，非機器人輸出</p><p class="tip">點選任一檔，查看個股明細</p><blockquote><small>白話重點</small>${say(cur,th)}</blockquote>`}
+h+=`<tr data-i="${i}" tabindex="0"><td>${i+1}</td><td><b>${x.c}</b> ${x.n}</td><td data-label="上漲／盤整／下跌"><span class="u">${F(x.u)}</span> / ${F(x.f)} / <span class="d">${F(x.d)}</span></td><td data-label="上漲／下跌比">${x.d===0?'無下跌機率':(x.u/x.d).toFixed(1)}</td><td data-label="勝率優勢">${SG(x.u-x.d)} 百分點</td><td class="st${s?'':' ns'}">${s?'★'.repeat(s):'不計星'}</td></tr>`});
+h+=`</tbody></table></div><p class="cv">上漲／下跌比、勝率優勢、星等為換算指標，非機器人輸出${cur.some(x=>star(x.u)===0)?'；星等僅對上漲訊號機率 70% 以上計算，未達者標示「不計星」':''}</p><p class="tip">點選任一檔，查看個股明細</p><blockquote><small>白話重點</small>${say(cur,th)}</blockquote>`}
 h+=`<p class="end">入選股請自行再查：①法人動向 ②均線位置</p><p class="end">查完有共識的股票，可分享到群組</p><p class="fine">機器人預測僅供參考，非投資建議。</p>`;
 $('#rep').innerHTML=h;$('#hint').textContent=N?'':'目前沒有股票達到門檻。可拖動上方的「門檻」滑桿，調低看看。';chips();closeP()}
 const SV=x=>`<svg viewBox="0 0 300 80" width="100%" style="background:#F7F9FB;border-radius:8px">${x}</svg>`;
@@ -166,7 +166,7 @@ let h=`<h3>${x.c} ${x.n}</h3>`+bar('上漲訊號機率',x.u,'var(--up)')+bar('�
 if(f){const fo=f.fo.slice(-20),tr=f.tr.slice(-20),vo=f.vo.slice(-20),pr=f.px.slice(-20),mv=Math.max(...vo,1.5),a=fo.concat(tr),mn=Math.min(...a),mx=Math.max(...a),yy=v=>74-(v-mn)/(mx-mn||1)*68,px=i=>pr[i].toLocaleString();
 h+=`<div class="ch"><h4>標準化收盤價走勢（相較區間第 1 天）</h4><div class="tabs">${[['w','週'],['m','月'],['q','季']].map(([k,l])=>`<button class="tb${k=='m'?' on':''}" data-k="${k}">${l}</button>`).join('')}</div><div id="c2"></div></div>`
 +`<div class="ch"><h4>日成交量倍數（相對 20 日均量）</h4>${chart('c3',20,96,vo.map((v,k)=>`<rect x="${1+k*288/19}" y="${74-v/mv*68}" width="10" height="${v/mv*68}" fill="var(--ac)"/>`).join('')+`<line x1="0" x2="300" y1="${74-1/mv*68}" y2="${74-1/mv*68}" stroke="#22313F" stroke-dasharray="3 3"/>`,[],i=>`${dl(19-i)}　收盤 ${px(i)} 元　成交量 ${vo[i].toFixed(2)} 倍`)}</div>`
-+`<div class="ch"><h4>外資（藍）／投信（橘）買賣超佔比走勢（%）</h4><p class="note" style="margin:0 0 4px">當日收盤價：<b style="color:var(--ink);font-size:15px">${f.px[59].toFixed(1)} 元</b></p>${chart('c4',20,96,P(fo,mn,mx,'#4A90C2')+P(tr,mn,mx,'#E0912F'),[{col:'#4A90C2',y:fo.map(yy)},{col:'#E0912F',y:tr.map(yy)}],i=>`${dl(19-i)}　收盤 ${px(i)} 元　<span style="color:#4A90C2">外資 ${SG(fo[i])}%</span>　<span style="color:#E0912F">投信 ${SG(tr[i])}%</span>`)}</div>`
++`<div class="ch"><h4>外資（藍）／投信（橘）買賣超佔比走勢（%）</h4><p class="note" style="margin:0 0 4px">當日收盤價：<b style="color:var(--ink);font-size:15px">${f.px[59].toFixed(1)} 元</b></p>${chart('c4',20,96,P(fo,mn,mx,'#4A90C2')+P(tr,mn,mx,'#E0912F'),[{col:'#4A90C2',y:fo.map(yy)},{col:'#E0912F',y:tr.map(yy)}],i=>`${dl(19-i)}　收盤 ${px(i)} 元<br><span style="color:#4A90C2;white-space:nowrap">外資 ${SG(fo[i])}%</span>　<span style="color:#E0912F;white-space:nowrap">投信 ${SG(tr[i])}%</span>`)}</div>`
 +TB('外資',f.fl)+TB('投信',f.tl)+`<p class="note">資料來源：FinMind（台灣證交所公開資料），資料日期 ${sel()}。買超紅、賣超綠。</p>`}
 else h+='<p class="note">模擬情境沒有對應的特徵資料，因此只顯示機率。</p>';
 $('#pb').innerHTML=h;if(f){set2('m');mark('c3',19);mark('c4',19)}document.body.classList.add('op')}
